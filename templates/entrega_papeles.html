@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Entrega de Papeles - Documentación Vehicular{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-box-seam"></i> Gestión de Entrega de Papeles
+        </h2>
+    </div>
+</div>
+
+<!-- Filtros de búsqueda -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-funnel"></i> Filtros de Búsqueda
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('entrega_papeles') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filtro_cliente" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="filtro_cliente" name="cliente" 
+                               value="{{ cliente_filter }}" placeholder="Buscar por cliente...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filtro_patente" class="form-label">Patente</label>
+                        <input type="text" class="form-control" id="filtro_patente" name="patente" 
+                               value="{{ patente_filter }}" placeholder="Buscar por patente...">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="btn-group w-100" role="group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                            <a href="{{ url_for('entrega_papeles') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario para agregar entrega -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Agregar Nueva Entrega
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('agregar_entrega') }}" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="cliente" class="form-label">Cliente *</label>
+                        <input type="text" class="form-control" id="cliente" name="cliente" 
+                               readonly required>
+                        <small class="form-text text-muted">Se autocompleta al seleccionar la patente</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="patente" class="form-label">Patente *</label>
+                        <input type="text" class="form-control" id="patente" name="patente" 
+                               list="patentes-list" style="text-transform: uppercase;" required
+                               placeholder="Selecciona o escribe la patente...">
+                        <datalist id="patentes-list">
+                            <!-- Se llena dinámicamente con JavaScript -->
+                        </datalist>
+                        <small class="form-text text-muted">Selecciona de la lista o escribe nueva</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fecha_entrega" class="form-label">Fecha de Entrega *</label>
+                        <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="documentacion_entregada" class="form-label">Documentación Entregada *</label>
+                        <textarea class="form-control" id="documentacion_entregada" name="documentacion_entregada" 
+                                  rows="1" required></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Agregar Entrega
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de entregas -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> Lista de Entregas
+                    {% if cliente_filter or patente_filter %}
+                        <span class="badge bg-info ms-2">
+                            Filtrado: 
+                            {% if cliente_filter %}{{ cliente_filter }}{% endif %}
+                            {% if cliente_filter and patente_filter %} - {% endif %}
+                            {% if patente_filter %}{{ patente_filter }}{% endif %}
+                        </span>
+                    {% endif %}
+                </h5>
+                <small class="text-muted">
+                    Total: {{ entrega_list|length }} entrega(s)
+                </small>
+            </div>
+            <div class="card-body">
+                {% if entrega_list %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Patente</th>
+                                <th>Fecha de Entrega</th>
+                                <th>Documentación Entregada</th>
+                                <th>Fecha de Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrega in entrega_list %}
+                            <tr>
+                                <td>{{ entrega.id }}</td>
+                                <td>{{ entrega.cliente }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ entrega.patente }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ entrega.fecha_entrega.strftime('%d/%m/%Y') }}</span>
+                                </td>
+                                <td>{{ entrega.documentacion_entregada }}</td>
+                                <td>{{ entrega.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('eliminar_entrega', id=entrega.id) }}" 
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('¿Estás seguro de que quieres eliminar este registro de entrega?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">
+                        {% if cliente_filter or patente_filter %}
+                            No se encontraron entregas con los filtros aplicados
+                        {% else %}
+                            No hay entregas registradas
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted">
+                        {% if cliente_filter or patente_filter %}
+                            Intenta con otros filtros o 
+                            <a href="{{ url_for('entrega_papeles') }}">limpiar los filtros</a>
+                        {% else %}
+                            Agrega tu primera entrega usando el formulario de arriba
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Convertir patente a mayúsculas automáticamente en el formulario
+document.getElementById('patente').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Convertir patente del filtro a mayúsculas
+document.getElementById('filtro_patente').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Establecer fecha actual por defecto
+document.getElementById('fecha_entrega').value = new Date().toISOString().split('T')[0];
+
+// Autocompletado de patentes y cliente
+document.addEventListener('DOMContentLoaded', function() {
+    const patenteInput = document.getElementById('patente');
+    const clienteInput = document.getElementById('cliente');
+    const patentesList = document.getElementById('patentes-list');
+    
+    // Cargar lista de patentes al cargar la página
+    cargarPatentes();
+    
+    // Evento cuando cambia la patente en el formulario
+    patenteInput.addEventListener('input', function() {
+        const patente = this.value.trim();
+        if (patente) {
+            buscarVehiculoPorPatente(patente);
+        } else {
+            clienteInput.value = '';
+            ocultarInfoVehiculo();
+        }
+    });
+    
+    // Evento cuando se selecciona una opción del datalist
+    patenteInput.addEventListener('change', function() {
+        const patente = this.value.trim();
+        if (patente) {
+            buscarVehiculoPorPatente(patente);
+        }
+    });
+    
+    // Función para cargar todas las patentes
+    function cargarPatentes() {
+        fetch('/api/vehiculos')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Limpiar lista
+                    patentesList.innerHTML = '';
+                    
+                    // Agregar opciones
+                    data.vehiculos.forEach(vehiculo => {
+                        const option = document.createElement('option');
+                        option.value = vehiculo.patente;
+                        option.textContent = `${vehiculo.patente} - ${vehiculo.cliente}`;
+                        patentesList.appendChild(option);
+                    });
+                    
+                    console.log(`Cargadas ${data.vehiculos.length} patentes para autocompletado`);
+                } else {
+                    console.error('Error al cargar patentes:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar patentes:', error);
+            });
+    }
+    
+    // Función para buscar vehículo por patente
+    function buscarVehiculoPorPatente(patente) {
+        console.log('Buscando vehículo con patente:', patente);
+        
+        fetch(`/api/vehiculo/${patente}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Vehículo encontrado:', data.vehiculo);
+                    // Autocompletar cliente
+                    clienteInput.value = data.vehiculo.cliente;
+                    
+                    // Mostrar información adicional
+                    mostrarInfoVehiculo(data.vehiculo);
+                } else {
+                    console.log('Vehículo no encontrado');
+                    // Limpiar cliente si no se encuentra
+                    clienteInput.value = '';
+                    ocultarInfoVehiculo();
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar vehículo:', error);
+                clienteInput.value = '';
+                ocultarInfoVehiculo();
+            });
+    }
+    
+    // Función para mostrar información del vehículo
+    function mostrarInfoVehiculo(vehiculo) {
+        // Crear o actualizar elemento de información
+        let infoDiv = document.getElementById('info-vehiculo');
+        if (!infoDiv) {
+            infoDiv = document.createElement('div');
+            infoDiv.id = 'info-vehiculo';
+            infoDiv.className = 'alert alert-info mt-2';
+            patenteInput.parentNode.appendChild(infoDiv);
+        }
+        
+        infoDiv.innerHTML = `
+            <small>
+                <i class="bi bi-info-circle"></i>
+                <strong>Cliente:</strong> ${vehiculo.cliente} | 
+                <strong>Modelo:</strong> ${vehiculo.modelo} | 
+                <strong>Color:</strong> ${vehiculo.color}
+            </small>
+        `;
+    }
+    
+    // Función para ocultar información del vehículo
+    function ocultarInfoVehiculo() {
+        const infoDiv = document.getElementById('info-vehiculo');
+        if (infoDiv) {
+            infoDiv.remove();
+        }
+    }
+});
+</script>
+{% endblock %}

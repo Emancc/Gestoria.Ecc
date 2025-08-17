@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Vehículos - Documentación Vehicular{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-car-front"></i> Gestión de Vehículos
+        </h2>
+    </div>
+</div>
+
+<!-- Filtros de búsqueda -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-funnel"></i> Filtros de Búsqueda
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('vehiculos') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="cliente" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="cliente" name="cliente" 
+                               value="{{ cliente_filter }}" placeholder="Buscar por cliente...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="patente" class="form-label">Patente</label>
+                        <input type="text" class="form-control" id="patente" name="patente" 
+                               value="{{ patente_filter }}" placeholder="Buscar por patente...">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="btn-group w-100" role="group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                            <a href="{{ url_for('vehiculos') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario para agregar vehículo -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Agregar Nuevo Vehículo
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('agregar_vehiculo') }}" class="row g-3">
+                    <div class="col-md-2">
+                        <label for="cliente" class="form-label">Cliente *</label>
+                        <input type="text" class="form-control" id="cliente" name="cliente" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="modelo" class="form-label">Modelo *</label>
+                        <input type="text" class="form-control" id="modelo" name="modelo" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="lugar_compra" class="form-label">Lugar de Compra *</label>
+                        <input type="text" class="form-control" id="lugar_compra" name="lugar_compra" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="color" class="form-label">Color *</label>
+                        <input type="text" class="form-control" id="color" name="color" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="patente" class="form-label">Patente *</label>
+                        <input type="text" class="form-control" id="patente" name="patente" 
+                               style="text-transform: uppercase;" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Agregar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de vehículos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul"></i> Lista de Vehículos
+                    {% if cliente_filter or patente_filter %}
+                        <span class="badge bg-info ms-2">
+                            Filtrado: 
+                            {% if cliente_filter %}{{ cliente_filter }}{% endif %}
+                            {% if cliente_filter and patente_filter %} - {% endif %}
+                            {% if patente_filter %}{{ patente_filter }}{% endif %}
+                        </span>
+                    {% endif %}
+                </h5>
+                <small class="text-muted">
+                    Total: {{ vehiculos|length }} vehículo(s)
+                </small>
+            </div>
+            <div class="card-body">
+                {% if vehiculos %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Modelo</th>
+                                <th>Lugar de Compra</th>
+                                <th>Color</th>
+                                <th>Patente</th>
+                                <th>Fecha de Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vehiculo in vehiculos %}
+                            <tr>
+                                <td>{{ vehiculo.id }}</td>
+                                <td>{{ vehiculo.cliente }}</td>
+                                <td>{{ vehiculo.modelo }}</td>
+                                <td>{{ vehiculo.lugar_compra }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ vehiculo.color }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ vehiculo.patente }}</span>
+                                </td>
+                                <td>{{ vehiculo.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('eliminar_vehiculo', id=vehiculo.id) }}" 
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirm('¿Estás seguro de que quieres eliminar este vehículo?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">
+                        {% if cliente_filter or patente_filter %}
+                            No se encontraron vehículos con los filtros aplicados
+                        {% else %}
+                            No hay vehículos registrados
+                        {% endif %}
+                    </h5>
+                    <p class="text-muted">
+                        {% if cliente_filter or patente_filter %}
+                            Intenta con otros filtros o 
+                            <a href="{{ url_for('vehiculos') }}">limpiar los filtros</a>
+                        {% else %}
+                            Agrega tu primer vehículo usando el formulario de arriba
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Convertir patente a mayúsculas automáticamente
+document.getElementById('patente').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Convertir patente del filtro a mayúsculas
+document.getElementById('patente').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+</script>
+{% endblock %}
