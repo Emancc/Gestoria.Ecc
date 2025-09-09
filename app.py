@@ -40,6 +40,15 @@ class EntregaPapeles(db.Model):
     documentacion_entregada = db.Column(db.Text, nullable=False)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
+class PapelesRetirar(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cliente = db.Column(db.String(100), nullable=False)
+    patente = db.Column(db.String(20), nullable=False)
+    lugar_registro = db.Column(db.String(100), nullable=False)
+    fecha_presentacion = db.Column(db.Date, nullable=False)
+    comentarios = db.Column(db.Text)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Función para verificar conexión a la base de datos
 def check_db_connection():
     """Verificar conexión a la base de datos"""
@@ -337,6 +346,78 @@ def api_vehiculo_por_patente(patente):
             
     except Exception as e:
         return {'success': False, 'error': str(e)}, 500
+
+@app.route('/papeles_retirar')
+def papeles_retirar():
+    # Obtener parámetros de búsqueda
+    cliente_filter = request.args.get('cliente', '')
+    lugar_filter = request.args.get('lugar', '')
+    patente_filter = request.args.get('patente', '')
+    
+    # Construir consulta con filtros
+    query = PapelesRetirar.query.order_by(PapelesRetirar.fecha_presentacion.desc())
+    
+    if cliente_filter:
+        query = query.filter(PapelesRetirar.cliente.ilike(f'%{cliente_filter}%'))
+    if lugar_filter:
+        query = query.filter(PapelesRetirar.lugar_registro.ilike(f'%{lugar_filter}%'))
+    if patente_filter:
+        query = query.filter(PapelesRetirar.patente.ilike(f'%{patente_filter}%'))
+    
+    registros = query.all()
+    return render_template('papeles_retirar.html', 
+                         registros=registros, 
+                         cliente_filter=cliente_filter, 
+                         lugar_filter=lugar_filter,
+                         patente_filter=patente_filter,
+                         now=datetime.utcnow())
+
+@app.route('/agregar_papeles_retirar', methods=['POST'])
+def agregar_papeles_retirar():
+    try:
+        # Obtener datos del formulario
+        cliente = request.form['cliente'].strip()
+        patente = request.form['patente'].strip().upper()
+        lugar_registro = request.form['lugar_registro'].strip()
+        fecha_presentacion = datetime.strptime(request.form['fecha_presentacion'], '%Y-%m-%d').date()
+        comentarios = request.form.get('comentarios', '').strip()
+        
+        # Validar campos obligatorios
+        if not cliente or not patente or not lugar_registro or not fecha_presentacion:
+            flash('Por favor complete todos los campos obligatorios', 'danger')
+            return redirect(url_for('papeles_retirar'))
+        
+        # Crear nuevo registro
+        nuevo_registro = PapelesRetirar(
+            cliente=cliente,
+            patente=patente,
+            lugar_registro=lugar_registro,
+            fecha_presentacion=fecha_presentacion,
+            comentarios=comentarios if comentarios else None
+        )
+        
+        db.session.add(nuevo_registro)
+        db.session.commit()
+        
+        flash('Registro de papeles a retirar agregado correctamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al agregar el registro: {str(e)}', 'danger')
+    
+    return redirect(url_for('papeles_retirar'))
+
+@app.route('/eliminar_papeles_retirar/<int:id>')
+def eliminar_papeles_retirar(id):
+    try:
+        registro = PapelesRetirar.query.get_or_404(id)
+        db.session.delete(registro)
+        db.session.commit()
+        flash('Registro eliminado correctamente', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error al eliminar el registro', 'danger')
+    
+    return redirect(url_for('papeles_retirar'))
 
 if __name__ == '__main__':
     # Verificar conexión antes de ejecutar

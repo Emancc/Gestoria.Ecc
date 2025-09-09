@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Papeles a Retirar - Documentación Vehicular{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="bi bi-file-earmark-arrow-down"></i> Papeles a Retirar
+        </h2>
+    </div>
+</div>
+
+<!-- Filtros de búsqueda -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-funnel"></i> Filtros de Búsqueda
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('papeles_retirar') }}" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="filtro_cliente" class="form-label">Cliente</label>
+                        <input type="text" class="form-control" id="filtro_cliente" name="cliente" 
+                               value="{{ cliente_filter }}" placeholder="Buscar por cliente...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtro_patente" class="form-label">Patente</label>
+                        <input type="text" class="form-control" id="filtro_patente" name="patente" 
+                               value="{{ patente_filter }}" placeholder="Buscar por patente...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtro_lugar" class="form-label">Lugar de Registro</label>
+                        <input type="text" class="form-control" id="filtro_lugar" name="lugar" 
+                               value="{{ lugar_filter }}" placeholder="Buscar por lugar...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="btn-group w-100" role="group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                            <a href="{{ url_for('papeles_retirar') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario para agregar nuevo registro -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle"></i> Agregar Papeles a Retirar
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('agregar_papeles_retirar') }}">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="cliente" class="form-label">Cliente *</label>
+                            <input type="text" class="form-control" id="cliente" name="cliente" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="patente" class="form-label">Patente *</label>
+                            <input type="text" class="form-control text-uppercase" id="patente" name="patente" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="lugar_registro" class="form-label">Lugar de Registro *</label>
+                            <input type="text" class="form-control" id="lugar_registro" name="lugar_registro" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_presentacion" class="form-label">Fecha de Presentación *</label>
+                            <input type="date" class="form-control" id="fecha_presentacion" name="fecha_presentacion" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="comentarios" class="form-label">Comentarios</label>
+                            <input type="text" class="form-control" id="comentarios" name="comentarios">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Guardar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de registros -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-check"></i> Registros de Papeles a Retirar
+                </h5>
+                <span class="badge bg-primary">{{ registros|length }} registros</span>
+            </div>
+            <div class="card-body">
+                {% if registros %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Patente</th>
+                                    <th>Lugar de Registro</th>
+                                    <th>Fecha de Presentación</th>
+                                    <th>Días Transcurridos</th>
+                                    <th>Comentarios</th>
+                                    <th>Fecha de Creación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for registro in registros %}
+                                    <tr>
+                                        <td>{{ registro.cliente }}</td>
+                                        <td><span class="text-uppercase">{{ registro.patente }}</span></td>
+                                        <td>{{ registro.lugar_registro }}</td>
+                                        <td>{{ registro.fecha_presentacion.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            {% set dias_transcurridos = (now.date() - registro.fecha_presentacion).days %}
+                                            <span class="badge {% if dias_transcurridos > 7 %}bg-danger{% else %}bg-success{% endif %}">
+                                                {{ dias_transcurridos }} días
+                                            </span>
+                                        </td>
+                                        <td>{{ registro.comentarios or '-' }}</td>
+                                        <td>{{ registro.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger delete-btn" 
+                                                    data-url="{{ url_for('eliminar_papeles_retirar', id=registro.id) }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i> No se encontraron registros de papeles a retirar.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer la fecha actual como valor por defecto en el campo de fecha
+    const fechaHoy = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha_presentacion').value = fechaHoy;
+    
+    // Convertir a mayúsculas automáticamente el campo de patente
+    const patenteInput = document.getElementById('patente');
+    if (patenteInput) {
+        patenteInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+    
+    // Manejar la eliminación de registros
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('¿Está seguro de eliminar este registro?')) {
+                window.location.href = this.getAttribute('data-url');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
