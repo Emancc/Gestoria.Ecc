@@ -2,9 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
+import pytz
 import os
 
 app = Flask(__name__)
+
+# Configurar timezone de Argentina
+ARGENTINA_TZ = pytz.timezone('America/Argentina/Buenos_Aires')
 
 # Configuración de la aplicación
 app.config['SECRET_KEY'] = 'mi_super_secreto_12345'
@@ -22,7 +26,7 @@ class Vehiculo(db.Model):
     lugar_compra = db.Column(db.String(100), nullable=False)
     color = db.Column(db.String(50), nullable=False)
     patente = db.Column(db.String(20), unique=True, nullable=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now(ARGENTINA_TZ))
 
 class Gestoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
