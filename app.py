@@ -34,7 +34,7 @@ class Gestoria(db.Model):
     patente = db.Column(db.String(20), nullable=False)
     papeles_recibidos = db.Column(db.Text, nullable=False)
     observaciones = db.Column(db.Text)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now(ARGENTINA_TZ))
 
 class EntregaPapeles(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,7 +42,7 @@ class EntregaPapeles(db.Model):
     patente = db.Column(db.String(20), nullable=False)
     fecha_entrega = db.Column(db.Date, nullable=False)
     documentacion_entregada = db.Column(db.Text, nullable=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now(ARGENTINA_TZ))
 
 class PapelesRetirar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,7 +51,7 @@ class PapelesRetirar(db.Model):
     lugar_registro = db.Column(db.String(100), nullable=False)
     fecha_presentacion = db.Column(db.Date, nullable=False)
     comentarios = db.Column(db.Text)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.now(ARGENTINA_TZ))
 
 # Función para verificar conexión a la base de datos
 def check_db_connection():
